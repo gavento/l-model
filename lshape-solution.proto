@@ -1,0 +1,17 @@
+
+message Solution {
+  message Point {
+    required uint64 x = 1;
+    required uint64 xmin = 2;
+    required uint64 xmax = 3;
+    required uint64 y = 4;
+    required uint64 ymin = 5;
+    required uint64 ymax = 6;
+  }
+  repeated Point point = 1;
+  // sorter candidate coordiantes,
+  // the first and last are just boundaries, never to be used
+  repeated uint64 candidatex = 2;
+  repeated uint64 candidatey = 3;
+}
+
