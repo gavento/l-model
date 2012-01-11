@@ -12,7 +12,7 @@ using namespace std;
 typedef uint64_t coord;
 const coord min_coord = 0;
 //const coord max_coord = 0x1000000000000000ULL;
-const coord max_coord = 2048ULL;
+const coord max_coord = 0x10000ULL;
 
 coord avg_coord(coord a, coord b)
 {
@@ -86,14 +86,14 @@ ostream& operator<<(ostream &o, Graph &g)
 int limit_x(Solution::Point &what, Solution::Point &where)
 {
   assert(what.x() < where.x());
-  what.set_xmax(MIN(what.xmax(), where.x()));
+  what.set_xmax(MIN(what.xmax(), where.x() - 1));
   return (what.xmin() <= what.xmax());
 }
 
 int limit_y(Solution::Point &what, Solution::Point &where)
 {
   assert(what.y() < where.y());
-  what.set_ymax(MIN(what.ymax(), where.y()));
+  what.set_ymax(MIN(what.ymax(), where.y() - 1));
   return (what.ymin() <= what.ymax());
 }
 
@@ -108,7 +108,7 @@ int extend_x(Solution &sol, Graph &g, int what_no, int to_no)
     if ((what_no != i) && (!g.adjacent(i, what_no)))
     {
       Solution::Point &p = *sol.mutable_point(i);
-      if ((p.x() > what.x()) && (p.y() < what.y()) && (p.x() < what.ymin()))
+      if ((p.x() > what.x()) && (p.y() < what.y()) && (p.x() <= what.xmin()))
 	limit_y(p, what);
     }
   if (what.xmin() <= what.xmax()) return 1;
@@ -126,7 +126,7 @@ int extend_y(Solution &sol, Graph &g, int what_no, int to_no)
     if ((what_no != i) && (!g.adjacent(i, what_no)))
     {
       Solution::Point &p = *sol.mutable_point(i);
-      if ((p.y() > what.y()) && (p.x() < what.x()) && (p.y() < what.ymin()))
+      if ((p.y() > what.y()) && (p.x() < what.x()) && (p.y() <= what.ymin()))
 	limit_x(p, what);
     }
   if (what.ymin() <= what.ymax()) return 1;
@@ -167,24 +167,25 @@ string solution_coords(const Solution &s0)
 
 int verify_solution(const Graph &g, const Solution &s)
 {
+  int errors = 0;
   for (int i = 0; i < g.vertices; i++)
     for (int j = 0; j < g.vertices; j++)
       if (i != j) {
         const Solution::Point &pi = s.point(i);
         const Solution::Point &pj = s.point(j);
-        if (pi.x() == pj.x()) return 0;
-        if (pi.y() == pj.y()) return 0;
+        if (pi.x() == pj.x()) assert(0);
+        if (pi.y() == pj.y()) assert(0);
         if (g.adjacent(i,j)) {
-          if ((pi.x() < pj.x()) && (pi.y() < pj.y())) return 0;
-          if ((pi.x() > pj.x()) && (pi.y() > pj.y())) return 0;
-          if ((pi.x() < pj.x()) && (pi.y() > pj.y()) && ((pi.xmin() < pj.x()) || (pj.ymin() < pi.y()))) return 0;
-          if ((pi.x() > pj.x()) && (pi.y() < pj.y()) && ((pj.xmin() < pi.x()) || (pi.ymin() < pj.y()))) return 0;
+          if ((pi.x() < pj.x()) && (pi.y() < pj.y())) assert(0);
+          if ((pi.x() > pj.x()) && (pi.y() > pj.y())) assert(0);
+          if ((pi.x() < pj.x()) && (pi.y() > pj.y()) && ((pi.xmin() < pj.x()) || (pj.ymin() < pi.y()))) assert(0);
+          if ((pi.x() > pj.x()) && (pi.y() < pj.y()) && ((pj.xmin() < pi.x()) || (pi.ymin() < pj.y()))) assert(0);
         } else {
-          if ((pi.x() < pj.x()) && (pi.y() > pj.y()) && (pi.xmin() >= pj.x()) && (pj.ymin() >= pi.y())) return 0;
-          if ((pi.x() > pj.x()) && (pi.y() < pj.y()) && (pj.xmin() >= pi.x()) && (pi.ymin() >= pj.y())) return 0;
+          if ((pi.x() < pj.x()) && (pi.y() > pj.y()) && (pi.xmin() >= pj.x()) && (pj.ymin() >= pi.y())) assert(0);
+          if ((pi.x() > pj.x()) && (pi.y() < pj.y()) && (pj.xmin() >= pi.x()) && (pi.ymin() >= pj.y())) assert(0);
         }
       }   
-  return 1;
+  return (errors == 0);
 }
 
 int add_point(Graph &g, Solution &s0, vector<int> &depths)
@@ -196,6 +197,8 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
     assert(verify_solution(g, s0));
     cout << "\n**SOLUTION: **\n" << solution_proto(s0) << "\n";
     cout << "\n**GNUPLOT: **\n" << solution_gnuplot(s0) << "\n";
+//    for(int i = 0; i < (int)depths.size(); i++)
+//      cout << i << ": " << depths[i] << "\n";
     return 1;
   }
 
@@ -253,15 +256,15 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
 	    ok &= extend_x(s, g, ip, iv);
 	  } else assert(0);
 	} else { // not neighbor
-/*	  if ((vx < x) && (vy > y)) {
-	    ok &= limit_x(v, p);
-	    ok &= limit_y(p, v);
+	  if ((vx < x) && (vy > y)) {
+//	    if (p.ymin() > v.y()) ok &= limit_x(v, p);
+	    if (v.xmin() >= p.x()) ok &= limit_y(p, v);
 	  }
 	  if ((vx > x) && (vy < y)) {
-	    ok &= limit_y(v, p);
-	    ok &= limit_x(p, v);
+//	    if (p.xmin() > v.x()) ok &= limit_y(v, p);
+	    if (v.ymin() >= p.y()) ok &= limit_x(p, v);
 	  }
-*/	}
+	}
       }
       if (!ok) {
 	continue;
@@ -294,16 +297,26 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
 
 int main(int argc, char **argv)
 {
-  assert(argc == 2);
-  string s(argv[1]);
-  cout << "working at " << s << "\n";
-  Graph g(s);
-  vector<int> depths;
-  depths.resize(g.vertices + 1);
-  cout << g << "\n";
-  int r = add_point(g, g.inital_solution, depths);
-  for(int i = 0; i < (int)depths.size(); i++)
-    cout << i << ": " << depths[i] << "\n";
-  return !r;
+  assert(argc == 1);
+  string s;
+  int i = 0;
+
+  while(getline(cin, s), s.size() >= 3) {
+    cout << "working at " << s << "\n";
+    Graph g(s);
+    vector<int> depths;
+    depths.resize(g.vertices + 1);
+    cout << g << "\n";
+    int r = add_point(g, g.inital_solution, depths);
+    for(int k = 0; k < (int)depths.size(); k++)
+      cout << k << ": " << depths[k] << "\n";
+    if (r == 0) {
+      cerr << "N " << s << "\n";
+    }
+    i++;
+    if (i%10000 == 0)
+      cerr << i << " done\n";
+  }
+  return 0;
 }
 

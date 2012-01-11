@@ -1,0 +1,28 @@
+*** At 10 vertices (plantri45/plantri -m3 -c2 -p 10 -a) @kamisama, 1 prog. invocation per graph
+63253 graphs, NO counterexamples (all have L-models)
+
+real  7m11.422s
+user  2m38.576s
+sys 2m15.291s
+approx. 0.0068 s/graph
+
+* The same with single program invocation:
+
+real  1m8.430s
+user  1m8.316s
+sys 0m0.067s
+approx. 0.0011 s/graph
+
+
+*** At 11 vertices (plantri45/plantri -m3 -c3 -p 11 -a) @kamisama 4x, single invocations
+440564 graphs total, NO couterexamples (all have L-models)
+
+tot user 53m58s
+approx. 0.0073 s/graph
+
+
+*** At 12 vertices (plantri45/plantri -m3 -c3 -p 12 -a) @kamenolom 16x, nice 15, single invocations
+6384634 graphs total
+
+
+

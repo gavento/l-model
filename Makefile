@@ -1,6 +1,6 @@
 all: lshape
 
-COPTS=-g -O2 -Wall -I/home/gavento/local/include/ -L/home/gavento/local/lib/
+COPTS=-O3 -Wall -I/home/gavento/local/include/ -L/home/gavento/local/lib/
 
 lshape-solution.pb.cc: lshape-solution.proto
 	protoc lshape-solution.proto --cpp_out=.
