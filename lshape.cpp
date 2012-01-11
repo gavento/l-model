@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 
 #include <google/protobuf/text_format.h>
 #include "lshape-solution.pb.h"
@@ -11,7 +12,7 @@ using namespace std;
 typedef uint64_t coord;
 const coord min_coord = 0;
 //const coord max_coord = 0x1000000000000000ULL;
-const coord max_coord = 0x10000ULL;
+const coord max_coord = 2048ULL;
 
 coord avg_coord(coord a, coord b)
 {
@@ -133,39 +134,52 @@ int extend_y(Solution &sol, Graph &g, int what_no, int to_no)
   return 0;
 }
 
+string solution_gnuplot(const Solution &s0)
+{
+  int d = s0.point_size();
+  stringstream ss(stringstream::out);
+  for(int i = 0; i < d; i++) {
+    const Solution::Point &p = s0.point(i);
+    float dd = max_coord >> (d + 2);
+    ss << "set arrow from " << p.x() << "," << p.y() << " to " << p.xmin()+dd << "," << p.y() << " nohead\n";
+    ss << "set arrow from " << p.x() << "," << p.y() << " to " << p.x() << "," << p.ymin()+dd << " nohead\n";
+  }
+  ss << "set xrange [0:" << max_coord << "]\nset yrange [0:" << max_coord << "]\nplot 1\n\n";
+  return ss.str();
+}
+
+string solution_proto(const Solution &s0)
+{
+  string s;
+  google::protobuf::TextFormat::PrintToString(s0, &s);
+  return s;
+}
+
+string solution_coords(const Solution &s0)
+{
+  stringstream ss(stringstream::out);
+  for(int i = 0; i < s0.point_size(); i++) {
+    const Solution::Point &p = s0.point(i);
+    ss << i << ": x=" << p.x() << " to " << p.xmin() << "-" << p.xmax() <<
+              "   y=" << p.y() << " to " << p.ymin() << "-" << p.ymax() << "\n";
+  }
+  return ss.str();
+}
+
 int add_point(Graph &g, Solution &s0, vector<int> &depths)
 {
   int d = s0.point_size(); // Depth
   depths[d]++;
   if (d == g.vertices)
   {
-    string out;
-    google::protobuf::TextFormat::PrintToString(s0, &out);
-    cout << "\n*****\n" << out << "\n";
-    for(int i = 0; i < d; i++) {
-      const Solution::Point &p = s0.point(i);
-      cout << i << ": x=" << p.x() << " to " << p.xmin() << "  y=" << p.y() << " to " << p.ymin() << "\n";
-    }
-
-    cout << "\n\nGNUPLOT:\n\n";
-    for(int i = 0; i < d; i++) {
-      const Solution::Point &p = s0.point(i);
-      float dd = max_coord >> (d + 2);
-      cout << "set arrow from " << p.x() << "," << p.y() << " to " << p.xmin()+dd << "," << p.y() << " nohead\n";
-      cout << "set arrow from " << p.x() << "," << p.y() << " to " << p.x() << "," << p.ymin()+dd << " nohead\n";
-    }
-    cout << "set xrange [0:" << max_coord << "]\nset yrange [0:" << max_coord << "]\nplot 1\n\n";
-
+    cout << "\n**SOLUTION: **\n" << solution_proto(s0) << "\n";
+    cout << "\n**GNUPLOT: **\n" << solution_gnuplot(s0) << "\n";
     return 1;
   }
 
-  if ((d >= 100)) {// && (s0.point(1).x()==64) && (s0.point(2).x()==96)) {
-    cout << "\n***" << d << "\n";
-    for(int i = 0; i < d; i++) {
-      const Solution::Point &p = s0.point(i);
-      cout << i << ": x=" << p.x() << " to " << p.xmin() << "  y=" << p.y() << " to " << p.ymin() << "\n";
-    }
-  }
+//  if ((d == 4) && (s0.point(1).x()==1536) && (s0.point(2).x()==512) && s0.point(3).x()==1792) {
+//    cout << "\n***" << d << "\n" << solution_coords(s0) << "\n";
+//  }
 
   int ix, iy;
   coord x, y;
@@ -183,6 +197,7 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
       int ok = 1;
       x = s0.candidatex(ix);
       y = s0.candidatey(iy);
+      if (d==1) cout << "Trying " << x << " " << y << "\n";
       p.set_x(x);
       p.set_xmin(x);
       p.set_xmax(max_coord);
@@ -200,7 +215,9 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
 	  if ((nx > x) && (ny > y)) ok = 0;
 	}
       }
-      if (!ok) continue;
+      if (!ok) {
+	continue;
+      }
 
       // Make arms shorter/longer
       for (int iv = 0; (iv < d) && ok; iv++) {
@@ -217,7 +234,7 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
 	    ok &= extend_x(s, g, ip, iv);
 	  } else assert(0);
 	} else { // not neighbor
-	  if ((vx < x) && (vy > y)) {
+/*	  if ((vx < x) && (vy > y)) {
 	    ok &= limit_x(v, p);
 	    ok &= limit_y(p, v);
 	  }
@@ -225,9 +242,11 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
 	    ok &= limit_y(v, p);
 	    ok &= limit_x(p, v);
 	  }
-	}
+*/	}
       }
-      if (!ok) continue;
+      if (!ok) {
+	continue;
+      }
 
       // Create a new candidate X list
       s.clear_candidatex();
