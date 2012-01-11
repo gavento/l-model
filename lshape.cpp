@@ -25,16 +25,16 @@ typedef vector<int> NeighborList;
 class Graph {
  public:
   int vertices; // Numbered 0..(vertices-1)
-  vector<NeighborList> neighbors;
+//  vector<NeighborList> neighbors;
   vector<vector<bool> > adjacent_array;
   Solution inital_solution;
 
-  int char_to_num(int c)
+  int char_to_num(int c) const
   {
     return c - 'a';
   }
 
-  bool adjacent(int v1, int v2)
+  bool adjacent(int v1, int v2) const
   {
     return adjacent_array[v1][v2];
   }
@@ -45,17 +45,17 @@ class Graph {
     int idx = 0;
     int idx2 = plantri_ascii.find(' ');
     vertices = atol(plantri_ascii.substr(0, idx2).c_str());
-    neighbors.resize(vertices);
+//    neighbors.resize(vertices);
     adjacent_array.resize(vertices);
     idx = idx2 + 1;
     for(int v = 0; v < vertices; v++) {
       adjacent_array[v].resize(vertices);
-      NeighborList &l = neighbors[v];
+//      NeighborList &l = neighbors[v];
       int c;
       while(c = plantri_ascii[idx], c >= 'a' && c <= 'z')
       {
 	int v2 = char_to_num(c);
-	l.push_back(v2);
+//	l.push_back(v2);
 	adjacent_array[v][v2] = true;
 	idx++;
       }
@@ -73,15 +73,14 @@ class Graph {
 ostream& operator<<(ostream &o, Graph &g)
 {
   o << "Graph(" << g.vertices << ", ";
-  for(int i = 0; i < g.vertices; i++)
-  {
-    NeighborList &v = g.neighbors[i];
+  for(int i = 0; i < g.vertices; i++) {
     o << i << ": ";
-    for(NeighborList::iterator j = v.begin(); j!= v.end(); j++) {
-      o << *j << ", ";
-    }
+    for(int j = 0; j < g.vertices; j++)
+      if ((i != j) && g.adjacent(i, j))
+	o << j << ",";
   }
   o << ")";
+  return o;
 }
 
 int limit_x(Solution::Point &what, Solution::Point &where)
@@ -166,12 +165,35 @@ string solution_coords(const Solution &s0)
   return ss.str();
 }
 
+int verify_solution(const Graph &g, const Solution &s)
+{
+  for (int i = 0; i < g.vertices; i++)
+    for (int j = 0; j < g.vertices; j++)
+      if (i != j) {
+        const Solution::Point &pi = s.point(i);
+        const Solution::Point &pj = s.point(j);
+        if (pi.x() == pj.x()) return 0;
+        if (pi.y() == pj.y()) return 0;
+        if (g.adjacent(i,j)) {
+          if ((pi.x() < pj.x()) && (pi.y() < pj.y())) return 0;
+          if ((pi.x() > pj.x()) && (pi.y() > pj.y())) return 0;
+          if ((pi.x() < pj.x()) && (pi.y() > pj.y()) && ((pi.xmin() < pj.x()) || (pj.ymin() < pi.y()))) return 0;
+          if ((pi.x() > pj.x()) && (pi.y() < pj.y()) && ((pj.xmin() < pi.x()) || (pi.ymin() < pj.y()))) return 0;
+        } else {
+          if ((pi.x() < pj.x()) && (pi.y() > pj.y()) && (pi.xmin() >= pj.x()) && (pj.ymin() >= pi.y())) return 0;
+          if ((pi.x() > pj.x()) && (pi.y() < pj.y()) && (pj.xmin() >= pi.x()) && (pi.ymin() >= pj.y())) return 0;
+        }
+      }   
+  return 1;
+}
+
 int add_point(Graph &g, Solution &s0, vector<int> &depths)
 {
   int d = s0.point_size(); // Depth
   depths[d]++;
   if (d == g.vertices)
   {
+    assert(verify_solution(g, s0));
     cout << "\n**SOLUTION: **\n" << solution_proto(s0) << "\n";
     cout << "\n**GNUPLOT: **\n" << solution_gnuplot(s0) << "\n";
     return 1;
@@ -183,8 +205,6 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
 
   int ix, iy;
   coord x, y;
-  NeighborList &n = g.neighbors[d];
-
 
   for(ix = 1; ix < s0.candidatex_size() - 1; ix++)
     for(iy = 1; iy < s0.candidatey_size() - 1; iy++)
@@ -197,7 +217,6 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
       int ok = 1;
       x = s0.candidatex(ix);
       y = s0.candidatey(iy);
-      if (d==1) cout << "Trying " << x << " " << y << "\n";
       p.set_x(x);
       p.set_xmin(x);
       p.set_xmax(max_coord);
@@ -283,7 +302,7 @@ int main(int argc, char **argv)
   depths.resize(g.vertices + 1);
   cout << g << "\n";
   int r = add_point(g, g.inital_solution, depths);
-  for(int i = 0; i < depths.size(); i++)
+  for(int i = 0; i < (int)depths.size(); i++)
     cout << i << ": " << depths[i] << "\n";
   return !r;
 }

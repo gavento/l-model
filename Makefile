@@ -1,15 +1,16 @@
 all: lshape
 
+COPTS=-g -O2 -Wall -I/home/gavento/local/include/ -L/home/gavento/local/lib/
+
 lshape-solution.pb.cc: lshape-solution.proto
 	protoc lshape-solution.proto --cpp_out=.
 
 lshape-solution.pb.o: lshape-solution.pb.cc
-	gcc -c lshape-solution.pb.cc -O2 -I/home/gavento/local/include/ -g
+	gcc -c lshape-solution.pb.cc $(COPTS)
 
 lshape: lshape-solution.pb.o lshape.cpp
 	gcc lshape-solution.pb.o lshape.cpp -o lshape \
-	  -O2 -I/home/gavento/local/include/ -g \
-	  -lstdc++ -lprotobuf -L /home/gavento/local/lib/ -lpthread
+	  -lstdc++ -lprotobuf -lpthread $(COPTS)
 
 clean:
 	rm -f lshape lshape*.o lshape-solution.pb.cc lshape-solution.pb.h
