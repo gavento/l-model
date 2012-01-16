@@ -1,6 +1,6 @@
 all: lshape
 
-COPTS=-O3 -Wall -I/home/gavento/local/include/ -L/home/gavento/local/lib/
+COPTS=-O0 -g -Wall -I/home/gavento/local/include/ -L/home/gavento/local/lib/ -Inauty24r2/
 
 lshape-solution.pb.cc: lshape-solution.proto
 	protoc lshape-solution.proto --cpp_out=.
@@ -10,6 +10,7 @@ lshape-solution.pb.o: lshape-solution.pb.cc
 
 lshape: lshape-solution.pb.o lshape.cpp
 	gcc lshape-solution.pb.o lshape.cpp -o lshape \
+	  nauty24r2/gtools.o nauty24r2/nauty1.o nauty24r2/nautil1.o nauty24r2/naugraph1.o -DMAXN=32 \
 	  -lstdc++ -lprotobuf -lpthread $(COPTS)
 
 clean:

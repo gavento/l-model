@@ -1,3 +1,6 @@
+
+==================== PLANAR GRAPHS ===
+
 *** At 10 vertices (plantri45/plantri -m3 -c2 -p 10 -a) @kamisama, 1 prog. invocation per graph
 63253 graphs, NO counterexamples (all have L-models)
 
@@ -25,4 +28,31 @@ approx. 0.0073 s/graph
 6384634 graphs total
 
 
+==================== ALL GRAPHS ===
+
+./geng 8 -C -d2 >/aux/gavento/lshape-data/allgraphs/g8.txt
+>Z 7123 graphs generated in 0.02 sec
+./geng 9 -C -d2 >/aux/gavento/lshape-data/allgraphs/g9.txt
+>Z 194066 graphs generated in 0.36 sec
+./geng 10 -C -d2 >/aux/gavento/lshape-data/allgraphs/g10.txt
+>Z 9743542 graphs generated in 15.84 sec
+
+*** 8 vertices @kamenolom:
+4.798s, 0.00065 s/graph, all have L-models
+
+*** 9 vertices @kamenolom:
+9m34.006s, 0.003 s/graph, all but: "HEhbtjK" have L-models
+
+Graph HEhbtjK:
+0 : 3 4 7 8;
+1 : 3 5 6 8;
+2 : 4 5 6 7;
+3 : 0 1 6 7;
+4 : 0 2 6 8;
+5 : 1 2 7 8;
+6 : 1 2 3 4;
+7 : 0 2 3 5;
+8 : 0 1 4 5;
+
+*** 10 vertices @kamenolom 16x, nice 15: (expect 28h)
 

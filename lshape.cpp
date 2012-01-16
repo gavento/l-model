@@ -7,6 +7,13 @@
 #include <google/protobuf/text_format.h>
 #include "lshape-solution.pb.h"
 
+#define WITH_NAUTY
+
+#ifdef WITH_NAUTY
+#include <gtools.h>
+#include <cstdio>
+#endif
+
 using namespace std;
 
 typedef uint64_t coord;
@@ -25,7 +32,6 @@ typedef vector<int> NeighborList;
 class Graph {
  public:
   int vertices; // Numbered 0..(vertices-1)
-//  vector<NeighborList> neighbors;
   vector<vector<bool> > adjacent_array;
   Solution inital_solution;
 
@@ -39,23 +45,47 @@ class Graph {
     return adjacent_array[v1][v2];
   }
 
+#ifdef WITH_NAUTY
+  Graph(const string graph6)
+  {
+    char *s = (char *)graph6.c_str();
+    graph g[32];
+    int m, n;
+    n = graphsize(s);
+    m = (n + WORDSIZE - 1) / WORDSIZE;
+    stringtograph(s, g, m);
+
+    vertices = n;
+    adjacent_array.resize(vertices);
+    for(int v = 0; v < vertices; v++) {
+      adjacent_array[v].resize(vertices);
+      for(int w = 0; w < vertices; w++) {
+	adjacent_array[v][w] = ISELEMENT(GRAPHROW(g, v, m), w) || ISELEMENT(GRAPHROW(g, w, m), v);
+//	assert(ISELEMENT(GRAPHROW(g, v, m), w) == ISELEMENT(GRAPHROW(g, w, m), v));
+      }
+    }
+    inital_solution.add_candidatex(min_coord);
+    inital_solution.add_candidatex(avg_coord(min_coord, max_coord));
+    inital_solution.add_candidatex(max_coord);
+    inital_solution.add_candidatey(min_coord);
+    inital_solution.add_candidatey(avg_coord(min_coord, max_coord));
+    inital_solution.add_candidatey(max_coord);
+  }
+#else /* WITH_NAUTY */
   Graph(const string plantri_ascii)
   {
     // parse plantri ASCII repr.
     int idx = 0;
     int idx2 = plantri_ascii.find(' ');
     vertices = atol(plantri_ascii.substr(0, idx2).c_str());
-//    neighbors.resize(vertices);
     adjacent_array.resize(vertices);
     idx = idx2 + 1;
     for(int v = 0; v < vertices; v++) {
       adjacent_array[v].resize(vertices);
-//      NeighborList &l = neighbors[v];
       int c;
       while(c = plantri_ascii[idx], c >= 'a' && c <= 'z')
       {
 	int v2 = char_to_num(c);
-//	l.push_back(v2);
 	adjacent_array[v][v2] = true;
 	idx++;
       }
@@ -68,13 +98,14 @@ class Graph {
     inital_solution.add_candidatey(avg_coord(min_coord, max_coord));
     inital_solution.add_candidatey(max_coord);
   }
+#endif /* WITH_NAUTY */
 };
 
 ostream& operator<<(ostream &o, Graph &g)
 {
-  o << "Graph(" << g.vertices << ", ";
+  o << "Graph(" << g.vertices << "|";
   for(int i = 0; i < g.vertices; i++) {
-    o << i << ": ";
+    o << " " << i << ":";
     for(int j = 0; j < g.vertices; j++)
       if ((i != j) && g.adjacent(i, j))
 	o << j << ",";
