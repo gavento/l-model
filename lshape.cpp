@@ -1,4 +1,5 @@
 #include <vector>
+#include <set>
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
@@ -7,7 +8,7 @@
 #include <google/protobuf/text_format.h>
 #include "lshape-solution.pb.h"
 
-#define WITH_NAUTY
+//#define WITH_NAUTY
 
 #ifdef WITH_NAUTY
 #include <gtools.h>
@@ -168,17 +169,21 @@ string solution_gnuplot(const Solution &s0)
 {
   int d = s0.point_size();
   stringstream ss(stringstream::out);
+  float maxx = 0, maxy = 0;
+//  float dd = max_coord >> (d + 2);
+  float dd = 0.5;
   for(int i = 0; i < d; i++) {
     const Solution::Point &p = s0.point(i);
-    float dd = max_coord >> (d + 2);
+    maxx = MAX(p.xmin(), maxx);
+    maxy = MAX(p.ymin(), maxy);
     ss << "set arrow from " << p.x() << "," << p.y() << " to " << p.xmin()+dd << "," << p.y() << " nohead\n";
     ss << "set arrow from " << p.x() << "," << p.y() << " to " << p.x() << "," << p.ymin()+dd << " nohead\n";
   }
-  ss << "set xrange [0:" << max_coord << "]\nset yrange [0:" << max_coord << "]\nplot 1\n\n";
+  ss << "set xrange [" << -dd << ":" << maxx+1 << "]\nset yrange [" << -dd << ":" << maxy+1 << "]\nplot -0.5\n\n";
   return ss.str();
 }
 
-string solution_proto(const Solution &s0)
+string solution_proto(const google::protobuf::Message &s0)
 {
   string s;
   google::protobuf::TextFormat::PrintToString(s0, &s);
@@ -196,7 +201,7 @@ string solution_coords(const Solution &s0)
   return ss.str();
 }
 
-int verify_solution(const Graph &g, const Solution &s)
+int verify_solution(const Graph &g, const Solution &s, int allow_equal=0)
 {
   int errors = 0;
   for (int i = 0; i < g.vertices; i++)
@@ -204,33 +209,132 @@ int verify_solution(const Graph &g, const Solution &s)
       if (i != j) {
         const Solution::Point &pi = s.point(i);
         const Solution::Point &pj = s.point(j);
-        if (pi.x() == pj.x()) assert(0);
-        if (pi.y() == pj.y()) assert(0);
+        if (!allow_equal) {
+	  if (pi.x() == pj.x()) assert(0);
+          if (pi.y() == pj.y()) assert(0);
+	}
         if (g.adjacent(i,j)) {
           if ((pi.x() < pj.x()) && (pi.y() < pj.y())) assert(0);
           if ((pi.x() > pj.x()) && (pi.y() > pj.y())) assert(0);
           if ((pi.x() < pj.x()) && (pi.y() > pj.y()) && ((pi.xmin() < pj.x()) || (pj.ymin() < pi.y()))) assert(0);
           if ((pi.x() > pj.x()) && (pi.y() < pj.y()) && ((pj.xmin() < pi.x()) || (pi.ymin() < pj.y()))) assert(0);
+	  if ((pi.x() == pj.x()) && (pi.y() > pj.y()) && (pj.ymin() < pi.y())) assert(0);
+	  if ((pi.y() == pj.y()) && (pi.x() > pj.x()) && (pj.xmin() < pi.x())) assert(0);
         } else {
-          if ((pi.x() < pj.x()) && (pi.y() > pj.y()) && (pi.xmin() >= pj.x()) && (pj.ymin() >= pi.y())) assert(0);
-          if ((pi.x() > pj.x()) && (pi.y() < pj.y()) && (pj.xmin() >= pi.x()) && (pi.ymin() >= pj.y())) assert(0);
+          if ((pi.x() <= pj.x()) && (pi.y() >= pj.y()) && (pi.xmin() >= pj.x()) && (pj.ymin() >= pi.y())) assert(0);
+          if ((pi.x() >= pj.x()) && (pi.y() <= pj.y()) && (pj.xmin() >= pi.x()) && (pi.ymin() >= pj.y())) assert(0);
         }
       }   
   return (errors == 0);
 }
 
-int add_point(Graph &g, Solution &s0, vector<int> &depths)
+// Fix xmin, ymin given point coordinates
+// Sets xmax, ymax to max_coord (not suitable for extending!)
+void update_arm_mins(Graph &g, Solution &s0)
+{
+  for (int v = 0; v < g.vertices; v++) {
+    Solution::Point &pv = *s0.mutable_point(v);
+    coord xmin = pv.x();
+    coord ymin = pv.y();
+    for (int w = 0; w < g.vertices; w++) {
+      Solution::Point &pw = *s0.mutable_point(w);
+      if ((v != w) && (g.adjacent(v, w))) {
+	xmin = MAX(xmin, pw.x());
+	ymin = MAX(ymin, pw.y());
+      }
+    }
+    assert(xmin >= pv.x());
+    assert(ymin >= pv.y());
+    pv.set_xmin(xmin);
+    pv.set_ymin(ymin);
+    pv.set_xmax(max_coord);
+    pv.set_ymax(max_coord);
+  }
+}
+
+void to_lowleft(Graph &g, Solution &s0)
+{
+  int change = 1;
+  while(change) {
+    change = 0;
+    // To left
+    for (int v = 0; v < g.vertices; v++) {
+      Solution s_old(s0);
+      Solution::Point &pv = *s0.mutable_point(v);
+      coord minx = min_coord;
+      for (int w = 0; w < g.vertices; w++) {
+	Solution::Point &pw = *s0.mutable_point(w);
+	if ((v != w)) {
+	  if (g.adjacent(v, w)) {
+	    if (pw.x() < pv.x())
+	      minx = MAX(minx, pw.x() + 1); // Is (+1) required?
+	  } else {
+	    if ((pw.x() < pv.x()) && (pw.y() >= pv.y()) && (pw.y() <= pv.ymin()))
+	      // Non-neighvor above pv but below pv's ymin, watch out for pw's right arm!
+	      minx = MAX(minx, pw.xmin() + 1);
+	    if ((pw.x() < pv.x()) && (pw.y() < pv.y()) && (pw.ymin() >= pv.y()))
+	      // Non-neighvor below pv but pw's ymin above pv, watch out for pw's up arm!
+	      minx = MAX(minx, pw.x() + 1);
+	  }
+	}
+      }
+      assert(minx <= pv.x());
+      if (minx != pv.x())
+	change = 1;
+      pv.set_x(minx);
+      update_arm_mins(g, s0);
+      assert(verify_solution(g, s0, 1));
+    }
+    // To low
+    for (int v = 0; v < g.vertices; v++) {
+      Solution s_old(s0);
+      Solution::Point &pv = *s0.mutable_point(v);
+      coord miny = min_coord;
+      for (int w = 0; w < g.vertices; w++) {
+	Solution::Point &pw = *s0.mutable_point(w);
+	if ((v != w)) {
+	  if (g.adjacent(v, w)) {
+	    if (pw.y() < pv.y())
+	      miny = MAX(miny, pw.y() + 1); // Is (+1) required?
+	  } else {
+	    if ((pw.y() < pv.y()) && (pw.x() >= pv.x()) && (pw.x() <= pv.xmin()))
+	      // Non-neighvor low-right of pv but left of pv's xmin, watch out for pw's up arm!
+	      miny = MAX(miny, pw.ymin() + 1);
+	    if ((pw.y() < pv.y()) && (pw.x() < pv.x()) && (pw.xmin() >= pv.x()))
+	      // Non-neighvor low-left of pv but pw's xmin right of pv, watch out for pw's right arm!
+	      miny = MAX(miny, pw.y() + 1);
+	  }
+	}
+      }
+      assert(miny <= pv.y());
+      if (miny != pv.y())
+	change = 1;
+      pv.set_y(miny);
+      update_arm_mins(g, s0);
+      assert(verify_solution(g, s0, 1));
+    }
+  }
+}
+
+int add_point(Graph &g, Solution &s0, vector<int> &depths, set<string> *sols)
 {
   int d = s0.point_size(); // Depth
   depths[d]++;
   if (d == g.vertices)
   {
     assert(verify_solution(g, s0));
-    cout << "\n**SOLUTION: **\n" << solution_proto(s0) << "\n";
-    cout << "\n**GNUPLOT: **\n" << solution_gnuplot(s0) << "\n";
-//    for(int i = 0; i < (int)depths.size(); i++)
-//      cout << i << ": " << depths[i] << "\n";
-    return 1;
+    to_lowleft(g, s0);
+    if (sols) {
+      // Collect them all!
+      string gs = solution_gnuplot(s0);
+      sols->insert(gs);
+      cout << sols->size() << "\n";
+      return 0;
+    } else {
+      cout << "\n**SOLUTION: **\n" << solution_proto(s0) << "\n";
+      cout << "\n**GNUPLOT: **\n" << solution_gnuplot(s0) << "\n";
+      return 1;
+    }
   }
 
 //  if ((d == 4) && (s0.point(1).x()==1536) && (s0.point(2).x()==512) && s0.point(3).x()==1792) {
@@ -320,7 +424,7 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths)
 	  s.add_candidatey(s0.candidatey(k));
 	}
       // Recurse
-      int r = add_point(g, s, depths);
+      int r = add_point(g, s, depths, sols);
       if (r) return r;
     }
   return 0;
@@ -336,9 +440,10 @@ int main(int argc, char **argv)
     cout << "working at " << s << "\n";
     Graph g(s);
     vector<int> depths;
+    set<string> sols;
     depths.resize(g.vertices + 1);
     cout << g << "\n";
-    int r = add_point(g, g.inital_solution, depths);
+    int r = add_point(g, g.inital_solution, depths, &sols);
     for(int k = 0; k < (int)depths.size(); k++)
       cout << k << ": " << depths[k] << "\n";
     if (r == 0) {
