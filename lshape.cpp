@@ -15,7 +15,12 @@
 #include <cstdio>
 #endif
 
-using namespace std;
+using std::ostream;
+using std::vector;
+using std::string; using std::stringstream;
+using std::cin;
+using std::cout;
+using std::cerr;
 
 typedef uint64_t coord;
 const coord min_coord = 0;
@@ -316,7 +321,7 @@ void to_lowleft(Graph &g, Solution &s0)
   }
 }
 
-int add_point(Graph &g, Solution &s0, vector<int> &depths, set<string> *sols)
+int add_point(Graph &g, Solution &s0, vector<int> &depths, std::set<string> *sols)
 {
   int d = s0.point_size(); // Depth
   depths[d]++;
@@ -440,10 +445,11 @@ int main(int argc, char **argv)
     cout << "working at " << s << "\n";
     Graph g(s);
     vector<int> depths;
-    set<string> sols;
+    std::set<string> sols;
     depths.resize(g.vertices + 1);
     cout << g << "\n";
-    int r = add_point(g, g.inital_solution, depths, &sols);
+    int r = add_point(g, g.inital_solution, depths, NULL);
+    //int r = add_point(g, g.inital_solution, depths, &sols);
     for(int k = 0; k < (int)depths.size(); k++)
       cout << k << ": " << depths[k] << "\n";
     if (r == 0) {
@@ -453,6 +459,7 @@ int main(int argc, char **argv)
     if (i%10000 == 0)
       cerr << i << " done\n";
   }
+  cerr << "all " << i << " done\n";
   return 0;
 }
 
