@@ -24,7 +24,7 @@ approx. 0.067s/g, estimated 119h total, all have L-models
 plantri45/plantri -m2 -c1 -p 10 -a
 tot user 43m, all have L-models
 
-*** 11 vertices (51286080 graphs), IN PROGRESS (est. 17h at slowest)
+*** 11 vertices (51286080 graphs), @kamenolom 16x, nice 15
 plantri45/plantri -m2 -c1 -p 11 -a
 tot user 40h, all have L-models
 
