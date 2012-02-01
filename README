@@ -26,7 +26,7 @@ tot user 43m, all have L-models
 
 *** 11 vertices (51286080 graphs), IN PROGRESS (est. 17h at slowest)
 plantri45/plantri -m2 -c1 -p 11 -a
-est. 103h total to run
+tot user 40h, all have L-models
 
 
 ==================== ALL GRAPHS, mindeg 2, 2 conn ===
