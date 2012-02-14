@@ -187,7 +187,7 @@ string solution_gnuplot(const Solution &s0)
     maxy = MAX(p.ymin(), maxy);
     ss << "set arrow from " << p.x() << "," << p.y() << " to " << p.xmin()+dd << "," << p.y() << " nohead\n";
     ss << "set arrow from " << p.x() << "," << p.y() << " to " << p.x() << "," << p.ymin()+dd << " nohead\n";
-    ss << "set label \"" << Graph::num_to_char(i) << "\" at " << p.x()-0.25 << "," << p.y() <<"\n";
+    ss << "set label \"" << Graph::num_to_char(i) << "\" at " << p.x()-0.5 << "," << p.y() <<"\n";
   }
   ss << "set xrange [" << -2*dd << ":" << maxx+2*dd << "]\nset yrange [" << -2*dd << ":" << maxy+4*dd << "]\nplot -1.0\n\n";
   return ss.str();
@@ -447,6 +447,9 @@ int main(int argc, char **argv)
   int i = 0;
 
   while(getline(cin, s), s.size() >= 3) {
+    /* skip comments */
+    if (s[0] == '#')
+      continue;
     cout << "working at " << s << "\n";
     Graph g(s);
     vector<int> depths;
