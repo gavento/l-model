@@ -41,10 +41,16 @@ class Graph {
   vector<vector<bool> > adjacent_array;
   Solution inital_solution;
 
-  int char_to_num(int c) const
+  static int char_to_num(int c)
   {
     return c - 'a';
   }
+  
+  static char num_to_char(int c)
+  {
+    return c + 'a';
+  }
+
 
   bool adjacent(int v1, int v2) const
   {
@@ -70,13 +76,6 @@ class Graph {
 //	assert(ISELEMENT(GRAPHROW(g, v, m), w) == ISELEMENT(GRAPHROW(g, w, m), v));
       }
     }
-    inital_solution.add_candidatex(min_coord);
-    inital_solution.add_candidatex(avg_coord(min_coord, max_coord));
-    inital_solution.add_candidatex(max_coord);
-    inital_solution.add_candidatey(min_coord);
-    inital_solution.add_candidatey(avg_coord(min_coord, max_coord));
-    inital_solution.add_candidatey(max_coord);
-  }
 #else /* WITH_NAUTY */
   Graph(const string plantri_ascii)
   {
@@ -97,6 +96,12 @@ class Graph {
       }
       idx++;
     }
+#endif /* WITH_NAUTY */
+    /* Check symmetry */
+    for(int v1 = 0; v1 < vertices; v1++)
+      for(int v2 = 0; v2 < vertices; v2++)
+	if (adjacent_array[v1][v2] != adjacent_array[v2][v1])
+	  cerr << "Adjacency asymmetry between " << num_to_char(v1) << " and " << num_to_char(v2) << "\n";
     inital_solution.add_candidatex(min_coord);
     inital_solution.add_candidatex(avg_coord(min_coord, max_coord));
     inital_solution.add_candidatex(max_coord);
@@ -104,7 +109,6 @@ class Graph {
     inital_solution.add_candidatey(avg_coord(min_coord, max_coord));
     inital_solution.add_candidatey(max_coord);
   }
-#endif /* WITH_NAUTY */
 };
 
 ostream& operator<<(ostream &o, Graph &g)
@@ -183,8 +187,9 @@ string solution_gnuplot(const Solution &s0)
     maxy = MAX(p.ymin(), maxy);
     ss << "set arrow from " << p.x() << "," << p.y() << " to " << p.xmin()+dd << "," << p.y() << " nohead\n";
     ss << "set arrow from " << p.x() << "," << p.y() << " to " << p.x() << "," << p.ymin()+dd << " nohead\n";
+    ss << "set label \"" << Graph::num_to_char(i) << "\" at " << p.x()-0.25 << "," << p.y() <<"\n";
   }
-  ss << "set xrange [" << -dd << ":" << maxx+1 << "]\nset yrange [" << -dd << ":" << maxy+1 << "]\nplot -0.5\n\n";
+  ss << "set xrange [" << -2*dd << ":" << maxx+2*dd << "]\nset yrange [" << -2*dd << ":" << maxy+4*dd << "]\nplot -1.0\n\n";
   return ss.str();
 }
 
