@@ -1,2 +1,4 @@
+# octahedron with an extra vertex in every face, planar
+# a-f octaedr, g-n face vertices
 #  a        b        c        d        e        f        g   h   i   j   k   l   m   n                         
 14 bcdeihjg,acdfikng,abefjmng,abefihlk,acdfhjlm,debcnklm,abc,ade,abd,ace,bdf,def,fec,bfc

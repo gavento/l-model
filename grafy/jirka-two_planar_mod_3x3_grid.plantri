@@ -1,2 +1,4 @@
+# Jirka's experiment with two grids sewed together (plus some extra edges), planar
+# a-i first copy, central vertex a; j-r second copy, central vertex j; otherwise no special orde
 # |a    b   c      d   e      f      g   h      i  |j    k   l      m   n      o      p   q      r               
 18 bdgi,ace,bdeflo,acf,bghcqo,cdhiln,eah,efginq,afh,kmpr,lnj,kmnocf,ljo,klpqfh,lmqrce,njq,nopreh,joq
