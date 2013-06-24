@@ -1,4 +1,7 @@
-all: lshape
+all: lshape-nauty lshape-plantri
+.PHONY: clean all get-nauty
+
+NAUTY_VER=nauty24r2
 
 COPTS=-O3 -Wall -I/home/gavento/local/include/ -L/home/gavento/local/lib/
 
@@ -8,16 +11,26 @@ lshape-solution.pb.cc: lshape-solution.proto
 lshape-solution.pb.o: lshape-solution.pb.cc
 	gcc -c lshape-solution.pb.cc $(COPTS)
 
-# For graph6 parsing
-NAUTY_STUFF= -Inauty24r2/ nauty24r2/gtools.o nauty24r2/nauty1.o nauty24r2/nautil1.o nauty24r2/naugraph1.o -DMAXN=32
+# NAUTY sources needed for graph6 file reading
+NAUTY_OPTS= -I${NAUTY_VER}/ ${NAUTY_VER}/gtools.o ${NAUTY_VER}/nauty1.o ${NAUTY_VER}/nautil1.o ${NAUTY_VER}/naugraph1.o -DMAXN=32 -DWITH_NAUTY
 
-# If WITH_NAUTY is not defined, can be linked without $(NAUTY_STUFF)
-lshape: lshape-solution.pb.o lshape.cpp
-	gcc lshape-solution.pb.o lshape.cpp -o lshape \
+lshape-nauty: lshape-solution.pb.o lshape.cpp
+	if [ ! -e ${NAUTY_VER}/nautil1.o ]; then echo "* ERROR: Run 'make get-nauty' before 'make lshape-nauty'."; exit 1; fi
+	gcc lshape-solution.pb.o lshape.cpp -o $@ \
 	  -lstdc++ -lprotobuf -lpthread $(COPTS) \
-	  $(NAUTY_STUFF)
+	  $(NAUTY_OPTS)
+
+lshape-plantri: lshape-solution.pb.o lshape.cpp
+	gcc lshape-solution.pb.o lshape.cpp -o $@ \
+	  -lstdc++ -lprotobuf -lpthread $(COPTS)
 
 clean:
-	rm -f lshape lshape*.o lshape-solution.pb.cc lshape-solution.pb.h
+	rm -f lshape-nauty lshape-plantri lshape*.o lshape-solution.pb.cc lshape-solution.pb.h
+	rm -f ${NAUTY_VER}.tar.gz
+	rm -rf ${NAUTY_VER}/
 
-.PHONY: clean all
+get-nauty:
+	rm -rf ${NAUTY_VER}/
+	wget -c http://cs.anu.edu.au/people/bdm/nauty/${NAUTY_VER}.tar.gz
+	tar -xzvvf ${NAUTY_VER}.tar.gz
+	cd ${NAUTY_VER}/ && ./configure && make

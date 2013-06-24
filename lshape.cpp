@@ -8,8 +8,6 @@
 #include <google/protobuf/text_format.h>
 #include "lshape-solution.pb.h"
 
-//#define WITH_NAUTY
-
 #ifdef WITH_NAUTY
 #include <gtools.h>
 #include <cstdio>
@@ -45,7 +43,7 @@ class Graph {
   {
     return c - 'a';
   }
-  
+
   static char num_to_char(int c)
   {
     return c + 'a';
@@ -234,7 +232,7 @@ int verify_solution(const Graph &g, const Solution &s, int allow_equal=0)
           if ((pi.x() <= pj.x()) && (pi.y() >= pj.y()) && (pi.xmin() >= pj.x()) && (pj.ymin() >= pi.y())) assert(0);
           if ((pi.x() >= pj.x()) && (pi.y() <= pj.y()) && (pj.xmin() >= pi.x()) && (pi.ymin() >= pj.y())) assert(0);
         }
-      }   
+      }
   return (errors == 0);
 }
 
