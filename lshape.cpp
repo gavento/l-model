@@ -336,18 +336,18 @@ int add_point(Graph &g, Solution &s0, vector<int> &depths, std::set<string> *sol
       // Collect them all!
       string gs = solution_gnuplot(s0);
       sols->insert(gs);
-      cout << sols->size() << "\n";
       return 0;
     } else {
-      cout << "\n**SOLUTION: **\n" << solution_proto(s0) << "\n";
-      cout << "\n**GNUPLOT: **\n" << solution_gnuplot(s0) << "\n";
+      // Print the first and exit
+#ifdef WRITE_SOLUTION
+      cerr << "\n** SOLUTION: **\n" << solution_proto(s0) << "\n";
+#endif /* WRITE_SOLUTION */
+#ifdef WRITE_GNUPLOT
+      cerr << "\n** GNUPLOT: **\n" << solution_gnuplot(s0) << "\n";
+#endif /* WRITE_GNUPLOT */
       return 1;
     }
   }
-
-//  if ((d == 4) && (s0.point(1).x()==1536) && (s0.point(2).x()==512) && s0.point(3).x()==1792) {
-//    cout << "\n***" << d << "\n" << solution_coords(s0) << "\n";
-//  }
 
   int ix, iy;
   coord x, y;
@@ -448,24 +448,27 @@ int main(int argc, char **argv)
     /* skip comments */
     if (s[0] == '#')
       continue;
-    cout << "working at " << s << "\n";
+    cerr << "*** Working at input " << i << ": " << s << "\n";
     Graph g(s);
     vector<int> depths;
     std::set<string> sols;
     depths.resize(g.vertices + 1);
-    cout << g << "\n";
+#ifdef WRITE_GRAPH
+    cerr << "\n** GRAPH: " << g << "\n";
+#endif /* WRITE_GRAPH */
     int r = add_point(g, g.inital_solution, depths, NULL);
-    //int r = add_point(g, g.inital_solution, depths, &sols);
+#ifdef WRITE_DEPTHS
     for(int k = 0; k < (int)depths.size(); k++)
-      cout << k << ": " << depths[k] << "\n";
+      cerr << k << ": " << depths[k] << "\n";
+#endif /* WRITE_DEPTHS */
     if (r == 0) {
-      cerr << "N " << s << "\n";
+      cout << "N " << s << "\n";
     }
     i++;
     if (i%10000 == 0)
-      cerr << i << " done\n";
+      cout << "I " << i << " done\n";
   }
-  cerr << "all " << i << " done\n";
+  cout << "I all " << i << " done\n";
   return 0;
 }
 
