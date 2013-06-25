@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include <google/protobuf/text_format.h>
-#include "lshape-solution.pb.h"
+#include "lmodel-solution.pb.h"
 
 #ifdef WITH_NAUTY
 #include <gtools.h>

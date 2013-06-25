@@ -14,12 +14,12 @@ are included in `graphs/`.
 
 Some large data-files can be found at the KAM computer `kamenolom` in `/aux/gavento/lshape-data/`.
 
-*By Tomáš Gavenčiak (gavento@kam.mff.cuni.cz), 2012.*
+*By Tomáš Gavenčiak (gavento@kam.mff.cuni.cz), 2012. Please let me know if you find out anything interesting using this tool.*
 
 
 ## Installation
 
-Clone this repo using `git clone https://github.com/gavento/l-shape.git`.
+Clone this repo using `git clone https://github.com/gavento/l-model.git`.
 
 You need the Protocol buffer compiler and libraries
 (packages `protobuf-compiler` and `libprotobuf-dev` in Debian).
@@ -28,14 +28,13 @@ You also need a working C++ compiler.
 For graph6 format support, you need nauty-24r2. Run `make get-nauty` to download and compile it.
 This needs `wget`. Then run `make all`.
 
-To only build the plantri version, run `make lshape-plantri`.
+To only build the plantri version, run `make lmodel-plantri`.
 
 
 ## Running
 
-`./lshape-nauty` reads graphs in "graph6" format, `./lshape-plantri` reads graphs in "plantri" format,
-both programs read one graph per line from STDIN. The programs search all L-shape intersection representations
-of the graph and have the same output.
+`./lmodel-nauty` reads graphs in "graph6" format, `./lmodel-plantri` reads graphs in "plantri" format,
+both programs read one graph per line from STDIN. The programs search for an L-model of the graph and have the same output.
 
 * STDOUT contains only progress information (every 10000 graphs and in the end) prefixed by "I" and
 the graphs that do NOT have a representation prefixed by "N".
