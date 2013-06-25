@@ -1,5 +1,6 @@
 *.pb.cc
 *.pb.h
 *.o
-lshape-*
+lshape-graph6
+lshape-plantri
 nauty2*
