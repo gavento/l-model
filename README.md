@@ -1,4 +1,4 @@
-# L-Shape search
+# L-model search
 
 *A search for general and planar graphs without L-models.*
 
