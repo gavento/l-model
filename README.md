@@ -1,24 +1,33 @@
 # L-Shape search
 
-Searching for (planar/general) graphs without L-models (1-bend drawing with single bend type/direction)
+*A search for general and planar graphs without L-models.*
 
-WLOG assuming 1-connectivity (disconnected graphs can be drawn by components) and minimal degree at least 2
-(leaves can be always drawn).
-First done for more restricted cases (less graphs, assumed to be good candidates),
-but later for all graphs as well.
+Program searching for L-models of graphs. L-model is an intersection graph representation using
+"L"'s, that is 1-bend polylines using 2 fixed directions (horizontal/vertical) where the bend is
+always the left-bottom-most point.
 
-Large data can be found at the KAM computer kamenolom in /aux/gavento/lshape-data/
+We may assume the minimal counterexample to be 1-connected (disconnected graphs can be drawn by components)
+and to have minimal degree at least 2 (leaves can be always drawn).
+
+Two hypothesised no-L-model planar graph candidates and their L-models found using the program
+are included in `graphs/`.
+
+Some large data-files can be found at the KAM computer `kamenolom` in `/aux/gavento/lshape-data/`.
+
 
 ## Installation
 
-You need the protocol-buffer compiler and libraries
+Clone this repo using `git clone https://github.com/gavento/l-shape.git`.
+
+You need the Protocol buffer compiler and libraries
 (packages `protobuf-compiler` and `libprotobuf-dev` in Debian).
 You also need a working C++ compiler.
 
 For graph6 format support, you need nauty-24r2. Run `make get-nauty` to download and compile it.
 This needs `wget`. Then run `make all`.
 
-To only make the plantri version, run `make lshape-plantri`.
+To only build the plantri version, run `make lshape-plantri`.
+
 
 ## Running
 
