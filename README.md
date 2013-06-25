@@ -14,6 +14,8 @@ are included in `graphs/`.
 
 Some large data-files can be found at the KAM computer `kamenolom` in `/aux/gavento/lshape-data/`.
 
+*By Tomáš Gavenčiak (gavento@kam.mff.cuni.cz), 2012.*
+
 
 ## Installation
 

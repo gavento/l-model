@@ -1,3 +1,4 @@
+/* Tomas Gavenciak, 2013 */
 
 message Solution {
   message Point {

@@ -1,3 +1,5 @@
+/* Tomas Gavenciak, 2013 */
+
 #include <vector>
 #include <set>
 #include <cstdlib>
